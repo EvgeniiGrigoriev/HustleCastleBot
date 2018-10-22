@@ -3,8 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HustleCastleSimulator.Extensions
 {    
@@ -61,7 +59,7 @@ namespace HustleCastleSimulator.Extensions
         public static IEnumerable<IntPtr> GetAllWindows(this Process p)
         {
             var handles = new List<IntPtr>();
-
+            System.Threading.Thread.Sleep(100);
             foreach (ProcessThread thread in p.Threads)
                 Win32Helpers.EnumThreadWindows((uint)thread.Id,
                     (hWnd, lParam) => { handles.Add(hWnd); return true; }, IntPtr.Zero);

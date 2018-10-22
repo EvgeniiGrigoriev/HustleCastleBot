@@ -23,26 +23,73 @@ namespace HustleCastleSimulator.Helpers
 
         public void Finish()
         {
+            System.Threading.Thread.Sleep(500);
+
             _process.CloseMainWindow();
+
             _process.Close();            
         }
 
         public void MinimizeWindow()
         {
             var result = _process.SendMessage(out IntPtr hwnd, Constants.WM_SYSCOMMAND, (IntPtr)Constants.SC_MINIMIZE, (IntPtr)0);
+
             Console.WriteLine(result);
         }
 
         public void RestoreWindow()
         {
             var result = _process.SendMessage(out IntPtr hwnd, Constants.WM_SYSCOMMAND, (IntPtr)Constants.SC_RESTORE, (IntPtr)0);
+
             Console.WriteLine(result);
         }
 
-        public IntPtr FindWindowWithText()
+        public List<Window> FindAllWindows(IntPtr handler = default(IntPtr))
         {
-            var windowsHWNDS = _process.GetAllWindows();
-            return IntPtr.Zero;
+            List<IntPtr> hwnds = new List<IntPtr>();
+
+            IntPtr mainWindowHwnd;
+
+            if (handler == IntPtr.Zero)
+            {
+                mainWindowHwnd =_process.MainWindowHandle;
+            }
+            else
+            {
+                mainWindowHwnd = handler;
+            }
+
+            hwnds.Add(mainWindowHwnd);
+            hwnds.AddRange(_process.GetAllWindows());
+
+            List<Window> allChildWindows = new List<Window>();
+
+            //foreach (var hwnd in hwnds)
+            //{
+            //    allChildWindows.AddRange(new WindowHandleInfo(hwnd).GetAllChildHandles());
+            //}
+
+            //allChildWindows.Add(new Window(Win32Helpers.GetMenu(mainWindowHwnd), true));
+
+            var menu = new Menu(mainWindowHwnd);
+
+            var menuItems = menu.FindAllMenuItems();
+
+            foreach (var childWindow in allChildWindows.ToList())
+            {
+                allChildWindows.AddRange(childWindow.FindAllWindows());
+            }
+
+            allChildWindows.OrderBy(w => (int)w.Handler);
+
+            allChildWindows.RemoveAll(w => string.IsNullOrEmpty(w.Text));
+
+            foreach (var window in allChildWindows)
+            {
+                Console.WriteLine(window.Text);
+            }
+
+            return allChildWindows;
         }
     }
 }

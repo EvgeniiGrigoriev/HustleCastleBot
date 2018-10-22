@@ -13,6 +13,7 @@ namespace HustleCastleSimulator.Helpers
         public static int SC_MINIMIZE = 0xF020;
         public static int SC_RESTORE = 0xF120;
 
-        public static int WM_GETTEXT = 0x000D;
+        public static uint WM_GETTEXT = 0x000D;
+        public static uint WM_GETTEXTLENGTH = 0x000E;
     }
 }

@@ -45,8 +45,12 @@
   <ItemGroup>
     <Compile Include="Extensions\ProcessExtensions.cs" />
     <Compile Include="Helpers\Constants.cs" />
+    <Compile Include="Helpers\Menu.cs" />
+    <Compile Include="Helpers\MenuInfo.cs" />
     <Compile Include="Helpers\ProcessHelper.cs" />
     <Compile Include="Helpers\Win32Helpers.cs" />
+    <Compile Include="Helpers\Window.cs" />
+    <Compile Include="Helpers\WindowHandleInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

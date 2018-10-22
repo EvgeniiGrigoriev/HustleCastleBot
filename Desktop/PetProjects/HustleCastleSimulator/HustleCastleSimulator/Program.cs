@@ -1,4 +1,5 @@
 ﻿using HustleCastleSimulator.Helpers;
+using System;
 using System.Diagnostics;
 
 namespace HustleCastleSimulator
@@ -11,9 +12,9 @@ namespace HustleCastleSimulator
 
             process.Start();
 
-            process.FindWindowWithText();
+            process.FindAllWindows();
 
-            //process.Finish();
+            process.Finish();
         }
     }
 }
