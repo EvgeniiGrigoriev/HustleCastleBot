@@ -52,6 +52,7 @@ namespace HustleCastleSimulator.Helpers
 
             if (handler == IntPtr.Zero)
             {
+                System.Threading.Thread.Sleep(200);
                 mainWindowHwnd =_process.MainWindowHandle;
             }
             else
@@ -71,7 +72,7 @@ namespace HustleCastleSimulator.Helpers
 
             //allChildWindows.Add(new Window(Win32Helpers.GetMenu(mainWindowHwnd), true));
 
-            var menu = new Menu(mainWindowHwnd);
+            var menu = new Menu(IntPtr.Zero, Win32Helpers.GetMenu(mainWindowHwnd), mainWindowHandle: mainWindowHwnd);
 
             var menuItems = menu.FindAllMenuItems();
 

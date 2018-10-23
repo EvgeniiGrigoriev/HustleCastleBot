@@ -12,7 +12,13 @@ namespace HustleCastleSimulator.Helpers
 
         private int? _textLength = null;
 
-        public IntPtr Handler { get; set; }
+        public IntPtr MainWindowHandle { get; set; }
+
+        public IntPtr ParentHandle { get; set; }
+
+        public IntPtr Handle { get; set; }
+
+        public List<Menu> subMenus { get; set; } = new List<Menu>();
 
         public string Text
         {
@@ -20,11 +26,11 @@ namespace HustleCastleSimulator.Helpers
             {
                 if (_text == null)
                 {
-                    var tmpText = new StringBuilder(TextLength + 1);
+                    var tmpText = new StringBuilder(11);
 
-                    this.SendMessage(Constants.WM_GETTEXT, (IntPtr)tmpText.Capacity, tmpText);
+                    Win32Helpers.GetMenuString(ParentHandle, Handle, tmpText, tmpText.Capacity, 1);
 
-                    _text = tmpText.ToString();
+                    _text = tmpText.Replace("&", "").ToString();
                 }
                 return _text;
             }
@@ -36,7 +42,7 @@ namespace HustleCastleSimulator.Helpers
             {
                 if (!_textLength.HasValue)
                 {
-                    _textLength = (int)this.SendMessage(Constants.WM_GETTEXTLENGTH, IntPtr.Zero, IntPtr.Zero);
+                    _textLength = (int)SendMessage(Constants.WM_GETTEXTLENGTH, IntPtr.Zero, IntPtr.Zero);
                 }
                 return _textLength.Value;
             }
@@ -44,12 +50,27 @@ namespace HustleCastleSimulator.Helpers
 
         public Menu(IntPtr handler)
         {
-            this.Handler = handler;
+            Handle = handler;
         }
 
+        public Menu(IntPtr parentHandle, IntPtr handle, IntPtr mainWindowHandle = default(IntPtr))
+        {
+            ParentHandle = parentHandle;
+            Handle = handle;
+            MainWindowHandle = mainWindowHandle;
+        }
+        
         public IntPtr SendMessage(UInt32 msg, IntPtr wParam, IntPtr lParam)
         {
-            IntPtr hwnd = Handler;
+            IntPtr hwnd = Handle;
+            if (hwnd != IntPtr.Zero)
+                return Win32Helpers.SendMessage(hwnd, msg, wParam, lParam);
+            else
+                return IntPtr.Zero;
+        }
+
+        public IntPtr SendMessage(IntPtr hwnd, UInt32 msg, IntPtr wParam, IntPtr lParam)
+        {
             if (hwnd != IntPtr.Zero)
                 return Win32Helpers.SendMessage(hwnd, msg, wParam, lParam);
             else
@@ -58,16 +79,24 @@ namespace HustleCastleSimulator.Helpers
 
         public IntPtr SendMessage(UInt32 msg, IntPtr wParam, StringBuilder lParam)
         {
-            IntPtr hwnd = Handler;
+            IntPtr hwnd = Handle;
             if (hwnd != IntPtr.Zero)
                 return Win32Helpers.SendMessage(hwnd, msg, wParam, lParam);
             else
                 return IntPtr.Zero;
         }
 
+        public bool PostMessage(IntPtr hwnd, UInt32 msg, IntPtr wParam, IntPtr lParam)
+        {
+            if (hwnd != IntPtr.Zero)
+                return Win32Helpers.PostMessage(hwnd, msg, wParam, lParam);
+            else
+                return false;
+        }
+
         public bool PostMessage(UInt32 msg, IntPtr wParam, IntPtr lParam)
         {
-            IntPtr hwnd = Handler;
+            IntPtr hwnd = Handle;
             if (hwnd != IntPtr.Zero)
                 return Win32Helpers.PostMessage(hwnd, msg, wParam, lParam);
             else
@@ -77,7 +106,7 @@ namespace HustleCastleSimulator.Helpers
         public bool PostThreadMessage(UInt32 msg, IntPtr wParam, IntPtr lParam, bool ensureTargetThreadHasWindow = true)
         {
             uint targetThreadId = 0;
-            IntPtr hwnd = Handler;
+            IntPtr hwnd = Handle;
             if (ensureTargetThreadHasWindow)
             {
                 uint processId = 0;
@@ -91,19 +120,70 @@ namespace HustleCastleSimulator.Helpers
                 return false;
         }
 
+        public void LButtonMouseClick()
+        {
+            PostMessage(Handle, Constants.WM_COMMAND, IntPtr.Zero, Handle);
+            //System.Threading.Thread.Sleep(300);
+            //PostMessage(MainWindowHandle, Constants.WM_LBUTTONUP, Handle, IntPtr.Zero);
+        }
+
         public List<Menu> FindAllMenuItems()
         {
             List<Menu> subMenus = new List<Menu>();
 
-            int menuItemCount = Win32Helpers.GetMenuItemCount(Handler);
+            int menuItemCount = Win32Helpers.GetMenuItemCount(Handle);
 
-            IntPtr subMenu = Win32Helpers.GetSubMenu(Handler, 1);
+            for (int i = 0; i < 5; i++)
+            {
+                var subMenuHandler = Win32Helpers.GetSubMenu(Handle, i);
+                subMenus.Add(new Menu(Handle, subMenuHandler, MainWindowHandle));
+            }
 
-            bool result = Win32Helpers.GetMenuInfo(Handler, out MENUINFO menuInfo);
+            var lastHandler = IntPtr.Zero;
+            for (int i = 0; lastHandler != IntPtr.Zero; i++)
+            {
+                var subMenuHandler = Win32Helpers.GetSubMenu(Handle, i);
+                var menuItem = new Menu(Handle, subMenuHandler, MainWindowHandle);
+                lastHandler = menuItem.Handle;
+                if (lastHandler != IntPtr.Zero)
+                {
+                    subMenus.Add(menuItem);
+                }
+            }
 
-            var tmp = new Menu(Win32Helpers.GetMenuItemID(Handler, 0));
+            foreach (var subMenu in subMenus.ToList())
+            {
+                subMenus.AddRange(subMenu.GetAllSubMenus());
+            }
 
-            var tmp2 = tmp.Text;
+            return subMenus;
+        }
+
+        public List<Menu> GetAllSubMenus()
+        { 
+            var menuItemsCount = Win32Helpers.GetMenuItemCount(Handle);
+
+            if(Text.Contains("File"))
+            {
+                LButtonMouseClick();
+            }
+
+            for (int i = 0; subMenus.Count != menuItemsCount; i++)
+            {
+                var subMenuHandler = Win32Helpers.GetMenuItemID(Handle, i);
+
+                var menuItem = new Menu(Handle, subMenuHandler, mainWindowHandle: MainWindowHandle);
+
+                if(menuItem.Text.Contains("Paste"))
+                {                    
+                    menuItem.LButtonMouseClick();
+                }
+
+                if (menuItem.Handle != IntPtr.Zero)
+                {
+                    subMenus.Add(menuItem);
+                }
+            }
 
             return subMenus;
         }

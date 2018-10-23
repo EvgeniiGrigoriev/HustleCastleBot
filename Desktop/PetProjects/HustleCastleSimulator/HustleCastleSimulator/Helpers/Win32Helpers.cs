@@ -68,6 +68,12 @@ namespace HustleCastleSimulator.Helpers
         public static extern IntPtr GetMenuItemID(IntPtr hMenu, int nPos);
 
         [DllImport("User32.dll")]
-        public static extern int GetMenuString(IntPtr hMenu, uint uIDItem, StringBuilder lpString, int nMaxCount, uint uFlag);
+        public static extern int GetMenuString(IntPtr hMenu, IntPtr uIDItem, StringBuilder lpString, int nMaxCount, uint uFlag);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetDlgItem(IntPtr hDlg, int nIDDlgItem);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr GetDlgItemText(IntPtr hDlg, int nIDDlgItem, StringBuilder lpString, int nMaxCount);
     }
 }
