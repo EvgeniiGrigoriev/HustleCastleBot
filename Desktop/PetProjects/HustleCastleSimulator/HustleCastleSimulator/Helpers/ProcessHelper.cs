@@ -65,16 +65,7 @@ namespace HustleCastleSimulator.Helpers
 
             List<Window> allChildWindows = new List<Window>();
 
-            //foreach (var hwnd in hwnds)
-            //{
-            //    allChildWindows.AddRange(new WindowHandleInfo(hwnd).GetAllChildHandles());
-            //}
-
-            //allChildWindows.Add(new Window(Win32Helpers.GetMenu(mainWindowHwnd), true));
-
             var menu = new Menu(IntPtr.Zero, Win32Helpers.GetMenu(mainWindowHwnd), mainWindowHandle: mainWindowHwnd);
-
-            var menuItems = menu.FindAllMenuItems();
 
             foreach (var childWindow in allChildWindows.ToList())
             {

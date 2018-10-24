@@ -21,5 +21,7 @@ namespace HustleCastleSimulator.Helpers
         public static uint WM_LBUTTONUP = 0x0202;
 
         public static uint BM_CLICK = 0x00F5;
+
+        public static int NullableHandler = -1;
     }
 }

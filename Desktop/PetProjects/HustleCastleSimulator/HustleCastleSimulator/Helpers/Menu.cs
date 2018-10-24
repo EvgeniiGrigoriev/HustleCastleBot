@@ -12,13 +12,40 @@ namespace HustleCastleSimulator.Helpers
 
         private int? _textLength = null;
 
+        private List<Menu> childMenus = null;
+
         public IntPtr MainWindowHandle { get; set; }
 
         public IntPtr ParentHandle { get; set; }
 
         public IntPtr Handle { get; set; }
 
-        public List<Menu> subMenus { get; set; } = new List<Menu>();
+        public List<Menu> ChildMenus
+        {
+            get
+            {
+                if(childMenus == null && (int)Handle != Constants.NullableHandler)
+                {
+                    childMenus = new List<Menu>();
+
+                    var menuItemsCount = Win32Helpers.GetMenuItemCount(Handle);
+
+                    for (int i = 0; i <= menuItemsCount; i++)
+                    {
+                        var subMenuHandler = Win32Helpers.GetSubMenu(Handle, i);
+
+                        var menuItem = new Menu(Handle, subMenuHandler, MainWindowHandle);
+
+                        if (menuItem.Handle != IntPtr.Zero && (int)menuItem.Handle != Constants.NullableHandler)
+                        {
+                            childMenus.Add(menuItem);
+                        }
+                    }
+                }
+
+                return childMenus;
+            }
+        }
 
         public string Text
         {
@@ -160,10 +187,12 @@ namespace HustleCastleSimulator.Helpers
         }
 
         public List<Menu> GetAllSubMenus()
-        { 
+        {
+            List<Menu> subMenus = new List<Menu>();
+
             var menuItemsCount = Win32Helpers.GetMenuItemCount(Handle);
 
-            if(Text.Contains("File"))
+            if (Text.Contains("File"))
             {
                 LButtonMouseClick();
             }
@@ -174,8 +203,8 @@ namespace HustleCastleSimulator.Helpers
 
                 var menuItem = new Menu(Handle, subMenuHandler, mainWindowHandle: MainWindowHandle);
 
-                if(menuItem.Text.Contains("Paste"))
-                {                    
+                if (menuItem.Text.Contains("Paste"))
+                {
                     menuItem.LButtonMouseClick();
                 }
 
